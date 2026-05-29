@@ -5,13 +5,26 @@ const api = axios.create({
   params: {
     api_key: import.meta.env.VITE_TMDB_KEY,
   },
-  timeout: 10000, // 10 second timeout
+  timeout: 30000,
 })
 
-// Response interceptor — catches all API errors in one place
 api.interceptors.response.use(
   response => response,
-  error => {
+  async error => {
+    const config = error.config
+
+    if (!config._retry) {
+      config._retry = true
+      if (
+        error.code === "ECONNABORTED" ||
+        error.code === "ERR_NETWORK" ||
+        error.response?.status === 429
+      ) {
+        await new Promise(res => setTimeout(res, 2000))
+        return api(config)
+      }
+    }
+
     if (error.code === "ECONNABORTED") {
       return Promise.reject(new Error("Request timed out. Check your connection."))
     }
@@ -32,6 +45,6 @@ export const getTrending = (page = 1) => api.get("/trending/movie/week", { param
 export const getPopular = (page = 1) => api.get("/movie/popular", { params: { page } })
 export const searchMovies = (query, page = 1) => api.get("/search/movie", { params: { query, page } })
 export const getMovieDetails = (id) => api.get(`/movie/${id}`)
+export const getMovieVideos = (id) => api.get(`/movie/${id}/videos`)
 
 export default api
-export const getMovieVideos = (id) => api.get(`/movie/${id}/videos`)
