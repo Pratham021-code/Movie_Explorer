@@ -8,7 +8,6 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
 
-  // helper — highlights active link
   const isActive = (path) => location.pathname === path
 
   return (
@@ -23,6 +22,7 @@ function Navbar() {
         {/* Logo */}
         <Link
           to="/"
+          onClick={() => setMenuOpen(false)}
           className={`text-2xl font-extrabold tracking-tight transition-colors
           ${dark ? "text-white" : "text-gray-900"}`}
         >
@@ -53,7 +53,6 @@ function Navbar() {
               {label}
             </Link>
           ))}
-
           <Button variant="secondary" size="sm" onClick={() => setDark(!dark)}>
             {dark ? " Light" : " Dark"}
           </Button>
@@ -61,7 +60,7 @@ function Navbar() {
 
         {/* Mobile hamburger */}
         <button
-          className={`md:hidden p-2 rounded-lg ${dark ? "text-white" : "text-gray-900"}`}
+          className={`md:hidden p-2 rounded-lg text-xl ${dark ? "text-white" : "text-gray-900"}`}
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
           aria-expanded={menuOpen}
@@ -70,33 +69,55 @@ function Navbar() {
         </button>
       </div>
 
-      {/* Mobile menu */}
-      {menuOpen && (
-        <div className={`md:hidden mt-4 pb-4 flex flex-col gap-4 border-t pt-4
-          ${dark ? "border-gray-700" : "border-gray-200"}`}
-        >
+      {/* Mobile menu — absolute so it overlays content */}
+      <div
+        className={`md:hidden absolute left-0 right-0 z-50
+          ${dark ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200"}
+          border-b shadow-xl
+          transition-all duration-300 ease-in-out overflow-hidden
+          ${menuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"}
+        `}
+      >
+        <div className="flex flex-col gap-1 px-6 py-4">
           {[
-            { path: "/", label: "Home" },
-            { path: "/search", label: "Search" },
-            { path: "/favorites", label: "Favorites" },
+            { path: "/", label: " Home" },
+            { path: "/search", label: " Search" },
+            { path: "/favorites", label: " Favorites" },
           ].map(({ path, label }) => (
             <Link
               key={path}
               to={path}
               onClick={() => setMenuOpen(false)}
-              className={`text-sm font-medium px-2 py-1 rounded transition-colors
+              className={`text-sm font-medium px-3 py-3 rounded-lg transition-colors
                 ${isActive(path)
-                  ? "text-blue-500"
-                  : dark ? "text-gray-300" : "text-gray-600"
+                  ? "bg-blue-600 text-white"
+                  : dark
+                    ? "text-gray-300 hover:bg-gray-800 hover:text-white"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                 }`}
             >
               {label}
             </Link>
           ))}
-          <Button variant="secondary" size="sm" onClick={() => setDark(!dark)}>
-            {dark ? " Light" : " Dark"}
-          </Button>
+          <div className="pt-2 border-t mt-1 ${dark ? 'border-gray-700' : 'border-gray-200'}">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => { setDark(!dark); setMenuOpen(false) }}
+              className="w-full"
+            >
+              {dark ? " Switch to Light" : " Switch to Dark"}
+            </Button>
+          </div>
         </div>
+      </div>
+
+      {/* Backdrop — clicking outside closes menu */}
+      {menuOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40"
+          onClick={() => setMenuOpen(false)}
+        />
       )}
     </nav>
   )
